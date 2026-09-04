@@ -98,8 +98,4 @@ A tela de detalhes recebe apenas o **ID** do filme pela navegação e faz uma no
 
 5. Escaneie o QR Code exibido no terminal com o app **Expo Go**, ou pressione `a` (Android) / `i` (iOS) se tiver um emulador configurado.
 
-## Ponto de atenção
 
-- A comunicação com a API é centralizada em `services/movieService.js`, evitando espalhar URLs e regras de requisição pela aplicação.
-- A chave da API não deve ser versionada publicamente; o ideal é movê-la para uma variável de ambiente (`.env`) futuramente.
-- É necessário manter a compatibilidade entre as versões do Expo, React Native e as bibliotecas utilizadas.
