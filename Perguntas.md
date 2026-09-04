@@ -177,13 +177,9 @@ API
 Se futuramente a API mudar, será possível alterar principalmente o `movieService.js`, sem precisar modificar todas as telas.
 
 ## 11. Estrutura de pastas
-
-A estrutura inicial pode ser:
-
-
-
+Teve uns erros nas instalações das bibliotecas , baixamos a versão antigo do Expo e depois atualizamos 
 ## 12. README.md
-
+As bibliotecas funcionaram bem 
 ## 13. Por que documentar as decisões desde o início?
 
 Documentar as decisões ajuda o grupo a manter um entendimento comum sobre o projeto.
