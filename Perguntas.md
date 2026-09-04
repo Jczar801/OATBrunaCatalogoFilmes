@@ -184,8 +184,6 @@ A estrutura inicial pode ser:
 
 ## 12. README.md
 
-> O documento fornecido não apresenta uma pergunta/resposta numerada para a questão 12; o conteúdo extraído passa da estrutura de pastas para a questão 13.
-
 ## 13. Por que documentar as decisões desde o início?
 
 Documentar as decisões ajuda o grupo a manter um entendimento comum sobre o projeto.
