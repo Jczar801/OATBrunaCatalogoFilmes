@@ -97,5 +97,6 @@ A tela de detalhes recebe apenas o **ID** do filme pela navegação e faz uma no
    ```
 
 5. Escaneie o QR Code exibido no terminal com o app **Expo Go**, ou pressione `a` (Android) / `i` (iOS) se tiver um emulador configurado.
+6. TENHA CALMA !! as imagens vão carregar !😂😂
 
 
