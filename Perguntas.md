@@ -180,7 +180,7 @@ Se futuramente a API mudar, será possível alterar principalmente o `movieServi
 
 A estrutura inicial pode ser:
 
-> A estrutura detalhada da questão 11 não está presente no conteúdo extraído do documento fornecido.
+
 
 ## 12. README.md
 
