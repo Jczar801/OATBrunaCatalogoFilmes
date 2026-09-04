@@ -247,21 +247,3 @@ porque contém as dependências instaladas e pode ser recriado utilizando:
 npm install
 ```
 
-Também devem ficar fora do Git arquivos que contenham informações privadas, como chaves de API e credenciais.
-
-Exemplo:
-
-```text
-.env
-```
-
-O projeto deverá possuir um `.gitignore`, por exemplo:
-
-```text
-node_modules/
-.expo/
-dist/
-web-build/
-.env
-.env.local
-```
