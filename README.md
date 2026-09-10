@@ -70,6 +70,23 @@ Informações completas do filme
 
 A tela de detalhes recebe apenas o **ID** do filme pela navegação e faz uma nova requisição à API, evitando transportar grandes quantidades de dados entre as telas.
 
+## Tratamento de erros
+
+Quando a requisição à API falha (sem internet, timeout, etc.), a tela exibe uma mensagem de erro com um botão **"Tentar novamente"**, que refaz a mesma chamada sem precisar sair da tela ou reiniciar o app.
+
+## Testes
+
+O projeto possui testes automatizados com **Jest** + **jest-expo** (telas/lógica React Native) e **@testing-library/react-native** (renderização de componentes).
+
+- `src/services/__tests__/movieService.test.js` — testa `getPopularMovies` e `getMovieDetails` com o axios mockado, cobrindo tanto o caminho de sucesso quanto o de erro.
+- `src/components/__tests__/MovieCard.test.js` — renderiza o `MovieCard` com dados fixos (mock) e verifica o texto exibido e o disparo do `onPress`.
+
+Para rodar os testes:
+
+```bash
+npm test
+```
+
 ## Como executar o projeto
 
 ### Pré-requisitos
@@ -99,4 +116,5 @@ A tela de detalhes recebe apenas o **ID** do filme pela navegação e faz uma no
 5. Escaneie o QR Code exibido no terminal com o app **Expo Go**, ou pressione `a` (Android) / `i` (iOS) se tiver um emulador configurado.
 6. TENHA CALMA !! as imagens vão carregar !😂😂
 
+> ⚠️ **Ponto de atenção:** a `API_KEY` atual está com o valor exposto diretamente no código-fonte (commitado no repositório). Para um projeto real, o recomendado é mover essa chave para uma variável de ambiente (ex: `.env` + `react-native-dotenv` ou `expo-constants`) e adicionar o arquivo ao `.gitignore`.
 

@@ -11,22 +11,25 @@ export default function MovieDetailScreen({ route }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function loadDetails() {
-      try {
-        const data = await getMovieDetails(movieId);
-        setMovie(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  async function loadDetails() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getMovieDetails(movieId);
+      setMovie(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadDetails();
   }, [movieId]);
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={error} onRetry={loadDetails} />;
 
   return (
     <ScrollView style={styles.container}>

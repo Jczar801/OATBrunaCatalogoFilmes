@@ -1,243 +1,86 @@
-# Pesquisa de Bibliotecas
+# MVP Funcional — Catálogo de Filmes
 
-## 1. Quais bibliotecas o grupo escolheu?
+## 1. Tela de listagem
 
-| Necessidade | Biblioteca escolhida | Função |
-|---|---|---|
-| Navegação | `@react-navigation/native` + `@react-navigation/native-stack` | Navegar entre listagem e detalhes |
-| Consumo de API | `axios` | Fazer requisições HTTP para buscar os filmes |
-| Ícones | `@expo/vector-icons` | Utilizar ícones na interface |
+**1. Como ficou a estrutura do componente de card de filme? Ele foi feito para ser reutilizado em outros pontos do app?**
 
-## 2. Por que escolheram essas bibliotecas?
+O componente `MovieCard` (`src/components/MovieCard.js`) recebe apenas duas props: `movie` (o objeto do filme) e `onPress` (função chamada ao tocar no card). Ele não conhece a origem dos dados nem a navegação — só exibe pôster, título e ano, e delega o toque para quem o usa. Isso o torna reutilizável em qualquer lista de filmes (populares, favoritos, resultado de busca, etc.), bastando passar um objeto de filme e um callback diferente.
 
-**React Navigation:** foi escolhida porque é uma das soluções mais utilizadas no ecossistema React Native, possui documentação ampla e permite criar facilmente navegação entre telas, como a tela de filmes e a tela de detalhes.
+**2. De onde vêm os dados exibidos na lista — de uma chamada direta à API na própria tela ou de uma função centralizada em services/?**
 
-**Axios:** foi escolhido por facilitar o consumo de APIs REST, oferecendo uma sintaxe simples para requisições GET, tratamento de erros e organização da comunicação com o servidor.
+Vêm de `getPopularMovies()`, centralizada em `src/services/movieService.js`. A tela (`MovieListScreen`) não sabe nada sobre URL, chave de API ou formato da resposta HTTP — apenas chama a função e recebe a lista já tratada.
 
-**Expo Vector Icons:** foi escolhido porque possui integração direta com projetos Expo e oferece diversos conjuntos de ícones, evitando a necessidade de instalar e configurar manualmente bibliotecas de ícones nativas.
+**3. O que acontece na tela enquanto os dados ainda estão sendo carregados?**
 
-## 3. Alguma precisa ser instalada com `npx expo install`?
+O estado `loading` começa `true`, e enquanto isso o componente `Loading` (um `ActivityIndicator` centralizado) é exibido no lugar da lista. Só quando a requisição termina (com sucesso ou erro) é que a tela decide o que renderizar.
 
-Sim. As bibliotecas relacionadas ao ambiente Expo devem ser instaladas preferencialmente utilizando:
+## 2. Navegação e tela de detalhes
 
-```bash
-npx expo install @expo/vector-icons
-```
+**4. Qual biblioteca de navegação foi usada e como os dados do filme selecionado são passados para a tela de detalhes?**
 
-O `expo install` verifica a versão do SDK do Expo utilizada no projeto e tenta instalar uma versão compatível da dependência.
+`@react-navigation/native-stack`. Ao tocar em um filme, a lista chama `navigation.navigate('MovieDetail', { movieId: item.id })` — ou seja, só o **ID** do filme é passado pelos parâmetros de rota, não o objeto completo.
 
-Para bibliotecas JavaScript independentes do ambiente nativo, como o Axios, podemos utilizar:
+**5. A tela de detalhes busca os dados novamente na API ou reaproveita os dados recebidos da tela de listagem? Qual foi a decisão do grupo e por quê?**
 
-```bash
-npm install axios
-```
+Busca novamente, usando `getMovieDetails(movieId)`. A decisão foi passar só o ID para não transportar objetos grandes pela navegação e porque o endpoint de detalhes da API retorna campos que não vêm no endpoint de listagem (como `runtime` e `genres`), então uma nova requisição é necessária de qualquer forma.
 
-Para o React Navigation, também devemos instalar suas dependências de acordo com a versão do Expo/React Native utilizada.
+**6. É possível voltar da tela de detalhes para a listagem sem perder o estado da lista (ex: posição do scroll)?**
 
-## 4. Como verificaram se as bibliotecas são bem mantidas e documentadas?
+Sim. Como o React Navigation mantém a tela de listagem montada na pilha (não a desmonta ao navegar para os detalhes), o estado do componente — incluindo a posição de scroll do `FlatList` — é preservado ao voltar com o `BackButton`.
 
-O grupo verificou:
+## 3. Tratamento de estados (loading e erro)
 
-- documentação oficial;
-- quantidade de downloads e utilização pela comunidade;
-- atualizações recentes;
-- compatibilidade com versões atuais do React Native/Expo;
-- existência de exemplos e tutoriais;
-- quantidade de issues e atividade dos repositórios oficiais.
+**7. O que o usuário vê se a API demorar para responder? E se a requisição falhar (ex: sem internet)?**
 
-## 5. Existe alguma limitação ou ponto de atenção?
+Enquanto a resposta não chega, o usuário vê o indicador de carregamento (`Loading`). Se a requisição falhar, o `movieService` captura o erro do axios e relança uma mensagem amigável em português (ex: "Não foi possível carregar os filmes."), exibida pelo componente `ErrorMessage`.
 
-Sim. O principal ponto de atenção é a compatibilidade das versões entre Expo, React Native e as bibliotecas utilizadas.
+**8. O grupo implementou alguma forma de tentar novamente (retry) após um erro? Por que isso é importante em apps mobile?**
 
-Além disso, a API de filmes pode possuir limites de requisições ou exigir uma chave de acesso. Por isso, a comunicação com a API deve ser centralizada e os erros devem ser tratados adequadamente.
+Sim — nesta etapa foi adicionado um botão **"Tentar novamente"** dentro do `ErrorMessage`, que recebe a mesma função de carregamento (`loadMovies` ou `loadDetails`) usada no `useEffect` inicial e a executa novamente. Isso é importante porque em mobile a conectividade é instável (o usuário pode estar em movimento, com sinal fraco, em modo avião etc.), e obrigar a pessoa a fechar e reabrir o app para tentar de novo é uma péssima experiência.
 
-## 6. Quais telas o app vai ter?
+## 4. Testes manuais do MVP
 
-Inicialmente, o aplicativo terá duas telas principais:
+**9. Em quais dispositivos/ambientes o grupo testou o app? Quais diferenças de comportamento ou de layout foram observadas entre eles?**
 
-### Tela 1 — Lista de Filmes
+O app foi testado via Expo Go em Android e no modo web (`npx expo start --web`). No modo web, o layout em grade de 2 colunas do `FlatList` se comporta de forma um pouco diferente (sem o efeito nativo de "bounce" do scroll), mas os fluxos de navegação, loading e erro funcionaram da mesma forma nos dois ambientes.
 
-Exibe:
+**10. Quais bugs ou comportamentos inesperados foram encontrados durante os testes manuais? Como foram corrigidos?**
 
-- pôster do filme;
-- título;
-- ano de lançamento, se disponível;
-- possibilidade de tocar no filme para visualizar seus detalhes.
+O principal ponto encontrado foi a ausência de uma forma de recuperação quando a API falhava: antes desta etapa, um erro de rede deixava o usuário "preso" na tela de erro, sem nenhuma ação possível além de fechar o app. Isso foi corrigido com a adição do botão de retry.
 
-Os dados serão obtidos através da API de filmes.
+**11. Por que testar em mais de um ambiente é especialmente importante em desenvolvimento mobile híbrido?**
 
-### Tela 2 — Detalhes do Filme
+Porque frameworks como o Expo/React Native compilam para múltiplas plataformas (Android, iOS, Web) a partir do mesmo código, mas cada plataforma tem sua própria engine de renderização e comportamento de componentes nativos. Um bug de layout ou uma API do dispositivo podem se comportar de forma diferente (ou nem existir) em uma plataforma específica, então testar só em um ambiente pode esconder problemas que só aparecem para parte dos usuários finais.
 
-Exibe informações completas do filme selecionado, como:
+## 5. Teste automatizado simples
 
-- pôster;
-- título;
-- sinopse;
-- ano de lançamento;
-- gênero;
-- avaliação;
-- duração;
-- outras informações disponibilizadas pela API.
+**12. Qual ferramenta de teste foi usada (ex: Jest, React Native Testing Library) e por que essa foi a escolha do grupo?**
 
-## 7. Como os dados vão fluir entre as telas?
+Foram usados **Jest** (com o preset `jest-expo`, que já configura o ambiente para React Native/Expo) e **@testing-library/react-native**. Essa combinação foi escolhida por ser o padrão recomendado pela própria documentação do Expo e por permitir testar tanto lógica pura (funções de `services/`) quanto a renderização de componentes de forma simples, sem precisar de um emulador rodando.
 
-- A tela de listagem receberá os filmes através da API.
-- Quando o usuário tocar em um filme, o aplicativo enviará o ID do filme para a tela de detalhes através da navegação.
+**13. O que exatamente o teste escrito verifica? O que ele NÃO cobre (limitações)?**
 
-O fluxo será:
+Foram escritos dois arquivos de teste:
 
-```text
-API
- ↓
-Lista de Filmes
- ↓
-Usuário toca em um filme
- ↓
-ID do filme é enviado
- ↓
-Tela de Detalhes
- ↓
-Informações completas do filme
-```
+- `src/services/__tests__/movieService.test.js`: mocka o axios e verifica que `getPopularMovies` e `getMovieDetails` chamam o endpoint correto e retornam os dados no formato esperado, além de verificar que, quando a chamada falha, a função lança a mensagem de erro amigável correta.
+- `src/components/__tests__/MovieCard.test.js`: renderiza o `MovieCard` com um objeto de filme fixo (mock) e verifica se o título e o ano aparecem na tela corretamente, e se `onPress` é chamado ao tocar no card.
 
-Uma possibilidade é passar apenas o ID e fazer uma nova requisição à API na tela de detalhes. Isso evita transportar uma grande quantidade de informações pela navegação.
+O que **não** é coberto: a integração real com a API do TMDb (os testes não fazem nenhuma requisição de rede de verdade), a navegação entre telas, e o comportamento visual/estilo dos componentes.
 
-## 8. Por que separar `screens/`, `components/` e `services/`?
+**14. Qual a diferença entre o que esse teste automatizado garante e o que os testes manuais da Etapa 4 garantem?**
 
-Porque essa separação organiza o projeto e facilita sua manutenção.
+O teste automatizado garante, de forma rápida e repetível, que uma função ou componente isolado continua se comportando como esperado a cada mudança no código (ex: se alguém alterar `movieService.js` e quebrar o tratamento de erro, o teste falha imediatamente). Já o teste manual garante que o **fluxo completo do app**, incluindo navegação, chamadas reais à API e comportamento visual em um dispositivo real, funciona de ponta a ponta — algo que o teste automatizado, por ser isolado e mockado, não é capaz de verificar sozinho.
 
-- `screens/` → contém as telas do aplicativo.
-- `components/` → contém componentes reutilizáveis.
-- `services/` → contém a comunicação com APIs e outras fontes externas.
-- `assets/` → contém imagens, fontes e outros arquivos estáticos.
+## 6. Documentação e commit
 
-Se todo o código estivesse em um único arquivo, seria mais difícil encontrar, modificar e reutilizar determinadas partes do sistema.
+**15. O que foi acrescentado ao README nesta etapa? Isso é suficiente para outra pessoa entender o estado atual do MVP?**
 
-Essa organização também facilita o trabalho em equipe, pois cada integrante consegue trabalhar em diferentes partes do projeto.
+Foram acrescentadas ao README: a seção de tratamento de erros (explicando o botão de retry), a seção de testes (como rodá-los e o que cada um cobre) e um aviso sobre a chave de API estar exposta no código. Combinado com o que já existia (tecnologias, estrutura de pastas, telas e fluxo de dados), o README agora descreve o estado atual do MVP de forma suficiente para outra pessoa entender o projeto e executá-lo, embora detalhes de configuração de ambiente (variáveis de ambiente, por exemplo) ainda possam ser aprofundados.
 
-## 9. Quais componentes reutilizáveis serão necessários?
+**16. O que esse commit representa em relação ao commit anterior (o do setup)? O grupo considera que o app já é um MVP utilizável? Por quê?**
 
-O grupo já consegue identificar:
+O commit anterior representava apenas a base do projeto (estrutura de pastas, bibliotecas instaladas, nenhuma tela funcional). Este commit representa a transformação dessa base em um app navegável de ponta a ponta: lista de filmes reais, detalhes completos, tratamento de loading/erro com retry e testes automatizados cobrindo a lógica central. Sim, o grupo considera que o app já é um MVP utilizável — ele cumpre o fluxo principal (ver lista → abrir detalhes → voltar) de forma estável, mesmo sem funcionalidades extras como busca ou favoritos.
 
-### MovieCard
+**17. Olhando para o app pronto até aqui, qual seria o próximo problema técnico ou funcional mais importante a resolver?**
 
-Responsável por mostrar:
-
-- pôster;
-- título;
-- informações resumidas.
-
-### Loading
-
-Para indicar que os filmes estão sendo carregados.
-
-### ErrorMessage
-
-Para informar quando ocorreu algum problema na API.
-
-### BackButton
-
-Para retornar à tela anterior.
-
-Também poderá existir um componente de busca:
-
-### SearchBar
-
-Caso o grupo implemente pesquisa de filmes.
-
-## 10. Onde ficará a comunicação com a API?
-
-A comunicação ficará centralizada em:
-
-```text
-services/
-```
-
-Por exemplo:
-
-```text
-services/
-└── movieService.js
-```
-
-Esse arquivo ficará responsável pelas requisições relacionadas aos filmes.
-
-Isso é uma boa prática porque evita espalhar URLs, requisições e regras de comunicação pela aplicação inteira.
-
-Por exemplo:
-
-```text
-screens
-   ↓
-movieService.js
-   ↓
-API
-```
-
-Se futuramente a API mudar, será possível alterar principalmente o `movieService.js`, sem precisar modificar todas as telas.
-
-## 11. Estrutura de pastas
-Teve uns erros nas instalações das bibliotecas , baixamos a versão antigo do Expo e depois atualizamos 
-## 12. README.md
-As bibliotecas funcionaram bem 
-## 13. Por que documentar as decisões desde o início?
-
-Documentar as decisões ajuda o grupo a manter um entendimento comum sobre o projeto.
-
-O README registra quais bibliotecas foram escolhidas, como o projeto está organizado e qual é o objetivo de cada pasta.
-
-Isso também facilita a entrada de novos integrantes e evita que decisões importantes sejam esquecidas durante o desenvolvimento.
-
-## 14. O README seria suficiente para outra pessoa entender o projeto?
-
-Sim, para uma visão inicial do projeto.
-
-O README apresenta:
-
-- objetivo;
-- tecnologias;
-- bibliotecas;
-- estrutura de pastas;
-- telas;
-- fluxo dos dados;
-- instruções para executar o projeto.
-
-Conforme o projeto evoluir, o README poderá ser atualizado com informações adicionais, como configuração da API, variáveis de ambiente e funcionalidades implementadas.
-
-## 15. O que o primeiro commit representa?
-
-O primeiro commit representa o ponto inicial oficial do desenvolvimento.
-
-Ele registra o projeto criado, sua estrutura inicial, as bibliotecas escolhidas e a documentação inicial.
-
-É como estabelecer uma primeira versão funcional da base do projeto.
-
-## 16. Por que versionar desde o início?
-
-Porque o Git permite acompanhar toda a evolução do projeto.
-
-Começar o versionamento desde o início permite:
-
-- recuperar versões anteriores;
-- identificar alterações;
-- desfazer alterações problemáticas;
-- trabalhar em equipe;
-- registrar quem realizou cada alteração;
-- evitar perda de código.
-
-Não é necessário esperar o aplicativo ficar pronto para começar a utilizar controle de versão.
-
-## 17. O que ficará fora do controle de versão?
-
-Principalmente:
-
-```text
-node_modules/
-```
-
-porque contém as dependências instaladas e pode ser recriado utilizando:
-
-```bash
-npm install
-```
-
+Mover a `API_KEY` do TMDb para fora do código-fonte (variável de ambiente), já que hoje ela está commitada em texto puro no repositório público. Depois disso, a próxima prioridade funcional seria implementar uma busca de filmes, já que o MVP atual só mostra os populares.

@@ -11,22 +11,25 @@ export default function MovieListScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function loadMovies() {
-      try {
-        const data = await getPopularMovies();
-        setMovies(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+  async function loadMovies() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getPopularMovies();
+      setMovies(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     loadMovies();
   }, []);
 
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (error) return <ErrorMessage message={error} onRetry={loadMovies} />;
 
   return (
     <View style={styles.container}>
