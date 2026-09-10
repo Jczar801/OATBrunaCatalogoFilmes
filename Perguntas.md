@@ -1,4 +1,4 @@
-# MVP Funcional — Catálogo de Filmes
+# MVP Funcional — Catálogo de Filmes 10/09/2026 
 
 ## 1. Tela de listagem
 
