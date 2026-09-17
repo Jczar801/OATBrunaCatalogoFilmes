@@ -15,6 +15,8 @@ Aplicativo mobile desenvolvido em **React Native** com **Expo**, como projeto ac
 | Navegação | `@react-navigation/native` + `@react-navigation/native-stack` | Navegar entre a listagem e os detalhes do filme |
 | Consumo de API | `axios` | Fazer requisições HTTP para buscar os filmes |
 | Ícones | `@expo/vector-icons` | Ícones utilizados na interface |
+| Tipografia | `@expo-google-fonts/poppins` + `@expo-google-fonts/inter` | Fontes customizadas (Poppins para títulos, Inter para texto corrido) |
+| Web (opcional) | `react-dom` + `react-native-web` | Rodar o app também no navegador (`npx expo start --web`) |
 
 A API de filmes utilizada é a [TMDb (The Movie Database)](https://www.themoviedb.org/).
 
@@ -33,13 +35,18 @@ app-filmes/
 │   │   ├── ErrorMessage.js
 │   │   └── BackButton.js
 │   ├── services/
-│   │   └── movieService.js
+│   │   ├── movieService.js
+│   │   └── movieUtils.js
+│   ├── theme/
+│   │   ├── colors.js
+│   │   └── typography.js
 │   └── assets/
 ```
 
 - **screens/** → telas do aplicativo
 - **components/** → componentes reutilizáveis
-- **services/** → comunicação com a API e outras fontes externas
+- **services/** → comunicação com a API e funções utilitárias puras (ex: formatação de data)
+- **theme/** → paleta de cores ("Cinema Noir") e famílias de fonte usadas em todo o app
 - **assets/** → imagens, fontes e outros arquivos estáticos
 
 ## Telas
@@ -49,6 +56,10 @@ Exibe o pôster, título e ano de lançamento dos filmes populares, com a possib
 
 ### Detalhes do Filme
 Exibe pôster, título, sinopse, ano de lançamento, gênero, avaliação e duração do filme selecionado.
+
+## Identidade visual
+
+O app usa a paleta **Cinema Noir** (fundo escuro `#141218`, dourado `#E8B94C` como cor de destaque em avaliação e botões) e a combinação de fontes **Poppins** (títulos) + **Inter** (texto corrido), definidas em `src/theme/colors.js` e `src/theme/typography.js` e carregadas em `App.js` via `@expo-google-fonts`.
 
 ## Fluxo de dados
 
@@ -79,6 +90,7 @@ Quando a requisição à API falha (sem internet, timeout, etc.), a tela exibe u
 O projeto possui testes automatizados com **Jest** + **jest-expo** (telas/lógica React Native) e **@testing-library/react-native** (renderização de componentes).
 
 - `src/services/__tests__/movieService.test.js` — testa `getPopularMovies` e `getMovieDetails` com o axios mockado, cobrindo tanto o caminho de sucesso quanto o de erro.
+- `src/services/__tests__/movieUtils.test.js` — testa `formatReleaseDate`, função pura que converte a data de lançamento da API (`AAAA-MM-DD`) para o padrão brasileiro (`DD/MM/AAAA`).
 - `src/components/__tests__/MovieCard.test.js` — renderiza o `MovieCard` com dados fixos (mock) e verifica o texto exibido e o disparo do `onPress`.
 
 Para rodar os testes:
