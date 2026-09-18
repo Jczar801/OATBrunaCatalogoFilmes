@@ -1,15 +1,16 @@
 // src/screens/MovieDetailScreen.js
 import React, { useEffect, useState } from 'react';
-import { Text, Image, ScrollView, StyleSheet, useWindowDimensions, PixelRatio } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, useWindowDimensions, PixelRatio } from 'react-native';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
+import FavoriteButton from '../components/FavoriteButton';
 import { getMovieDetails } from '../services/movieService';
-import { formatReleaseDate, getResponsivePosterUrl } from '../services/movieUtils';
+import { formatReleaseDate, getResponsivePosterUrl, POSTER_ASPECT_RATIO } from '../services/movieUtils';
+import { useFavorites } from '../context/FavoritesContext';
 import colors from '../theme/colors';
 import typography from '../theme/typography';
 
 const CONTAINER_PADDING = 16;
-const POSTER_ASPECT_RATIO = 1.5; // pôsteres do TMDb seguem a proporção 2:3
 
 export default function MovieDetailScreen({ route }) {
   const { movieId } = route.params;
@@ -17,6 +18,7 @@ export default function MovieDetailScreen({ route }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { width } = useWindowDimensions();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   async function loadDetails() {
     setLoading(true);
@@ -49,7 +51,14 @@ export default function MovieDetailScreen({ route }) {
         style={[styles.poster, { width: posterWidth, height: posterHeight }]}
         source={{ uri: posterUrl }}
       />
-      <Text style={styles.title}>{movie.title}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{movie.title}</Text>
+        <FavoriteButton
+          active={isFavorite(movie.id)}
+          onPress={() => toggleFavorite(movie)}
+          size={26}
+        />
+      </View>
       <Text style={styles.info}>{formatReleaseDate(movie.release_date)} • {movie.runtime} min</Text>
       <Text style={styles.genres}>
         {movie.genres?.map((g) => g.name).join(', ')}
@@ -63,7 +72,14 @@ export default function MovieDetailScreen({ route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: CONTAINER_PADDING, backgroundColor: colors.background },
   poster: { borderRadius: 12, backgroundColor: colors.surfaceAlt },
-  title: { fontFamily: typography.heading, fontSize: 22, color: colors.textPrimary, marginTop: 16 },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 16,
+    gap: 12,
+  },
+  title: { flex: 1, fontFamily: typography.heading, fontSize: 22, color: colors.textPrimary },
   info: { fontFamily: typography.body, fontSize: 14, color: colors.textSecondary, marginTop: 4 },
   genres: { fontFamily: typography.bodyMedium, fontSize: 14, color: colors.textSecondary, marginTop: 4 },
   rating: { fontFamily: typography.bodySemiBold, fontSize: 16, color: colors.gold, marginTop: 8 },

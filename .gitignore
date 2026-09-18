@@ -31,10 +31,14 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
+
+# Claude Code (config local da ferramenta, não faz parte do projeto)
+.claude/
 
 # generated native folders
 /ios

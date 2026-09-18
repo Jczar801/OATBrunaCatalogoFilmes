@@ -1,5 +1,8 @@
 // src/services/movieUtils.js
 
+// Pôsteres do TMDb seguem a proporção 2:3 (largura:altura).
+export const POSTER_ASPECT_RATIO = 1.5;
+
 export function formatReleaseDate(releaseDate) {
   if (!releaseDate) return '';
   const [year, month, day] = releaseDate.split('-');

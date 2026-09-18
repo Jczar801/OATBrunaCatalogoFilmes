@@ -7,8 +7,11 @@ import { useFonts, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fon
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import MovieListScreen from './src/screens/MovieListScreen';
 import MovieDetailScreen from './src/screens/MovieDetailScreen';
+import FavoritesScreen from './src/screens/FavoritesScreen';
 import BackButton from './src/components/BackButton';
+import FavoritesHeaderButton from './src/components/FavoritesHeaderButton';
 import Loading from './src/components/Loading';
+import { FavoritesProvider } from './src/context/FavoritesContext';
 import colors from './src/theme/colors';
 import typography from './src/theme/typography';
 
@@ -22,6 +25,7 @@ const linking = {
     screens: {
       MovieList: '',
       MovieDetail: 'filme/:movieId',
+      Favorites: 'favoritos',
     },
   },
 };
@@ -50,28 +54,35 @@ export default function App() {
   if (!fontsLoaded) return <Loading />;
 
   return (
-    <NavigationContainer theme={navigationTheme} linking={linking}>
-      <StatusBar style="light" />
-      <Stack.Navigator
-        initialRouteName="MovieList"
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.surface },
-          headerTintColor: colors.textPrimary,
-          headerTitleStyle: { fontFamily: typography.headingSemiBold },
-          headerShadowVisible: false,
-        }}
-      >
-        <Stack.Screen
-          name="MovieList"
-          component={MovieListScreen}
-          options={{ title: 'Filmes Populares' }}
-        />
-        <Stack.Screen
-          name="MovieDetail"
-          component={MovieDetailScreen}
-          options={{ title: 'Detalhes', headerLeft: () => <BackButton /> }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <FavoritesProvider>
+      <NavigationContainer theme={navigationTheme} linking={linking}>
+        <StatusBar style="light" />
+        <Stack.Navigator
+          initialRouteName="MovieList"
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.textPrimary,
+            headerTitleStyle: { fontFamily: typography.headingSemiBold },
+            headerShadowVisible: false,
+          }}
+        >
+          <Stack.Screen
+            name="MovieList"
+            component={MovieListScreen}
+            options={{ title: 'CineLog', headerRight: () => <FavoritesHeaderButton /> }}
+          />
+          <Stack.Screen
+            name="MovieDetail"
+            component={MovieDetailScreen}
+            options={{ title: 'Detalhes', headerLeft: () => <BackButton /> }}
+          />
+          <Stack.Screen
+            name="Favorites"
+            component={FavoritesScreen}
+            options={{ title: 'Favoritos', headerLeft: () => <BackButton /> }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </FavoritesProvider>
   );
 }

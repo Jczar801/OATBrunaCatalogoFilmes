@@ -1,25 +1,23 @@
 // src/screens/MovieListScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, StyleSheet, useWindowDimensions } from 'react-native';
-import MovieCard from '../components/MovieCard';
+import { View, StyleSheet } from 'react-native';
+import MovieGrid from '../components/MovieGrid';
+import SearchBar from '../components/SearchBar';
 import Loading from '../components/Loading';
 import ErrorMessage from '../components/ErrorMessage';
-import { getPopularMovies } from '../services/movieService';
+import EmptyState from '../components/EmptyState';
+import { getPopularMovies, searchMovies } from '../services/movieService';
 import colors from '../theme/colors';
 
-const CONTAINER_PADDING = 8;
-const CARD_MARGIN = 8;
-const MIN_CARD_WIDTH = 120;
-const MAX_CARD_WIDTH = 160;
-const MAX_COLUMNS = 6;
+const SEARCH_DEBOUNCE_MS = 400;
 
 export default function MovieListScreen({ navigation }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { width } = useWindowDimensions();
+  const [query, setQuery] = useState('');
 
-  async function loadMovies() {
+  async function loadPopularMovies() {
     setLoading(true);
     setError(null);
     try {
@@ -32,34 +30,93 @@ export default function MovieListScreen({ navigation }) {
     }
   }
 
+  async function runSearch(searchQuery) {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await searchMovies(searchQuery);
+      setMovies(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function loadForQuery(searchQuery) {
+    const trimmedQuery = searchQuery.trim();
+    return trimmedQuery ? runSearch(trimmedQuery) : loadPopularMovies();
+  }
+
   useEffect(() => {
-    loadMovies();
+    loadPopularMovies();
   }, []);
 
-  if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} onRetry={loadMovies} />;
+  useEffect(() => {
+    if (!query.trim()) {
+      return;
+    }
 
-  const availableWidth = width - CONTAINER_PADDING * 2;
-  const numColumns = Math.min(
-    MAX_COLUMNS,
-    Math.max(2, Math.floor(availableWidth / (MIN_CARD_WIDTH + CARD_MARGIN * 2)))
+    const timeoutId = setTimeout(() => runSearch(query.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeoutId);
+  }, [query]);
+
+  function handleChangeQuery(text) {
+    setQuery(text);
+    if (!text.trim()) {
+      loadPopularMovies();
+    }
+  }
+
+  function retry() {
+    loadForQuery(query);
+  }
+
+  const searchBar = (
+    <SearchBar value={query} onChangeText={handleChangeQuery} />
   );
-  const cardWidth = Math.min(MAX_CARD_WIDTH, availableWidth / numColumns - CARD_MARGIN * 2);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        {searchBar}
+        <Loading />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        {searchBar}
+        <ErrorMessage message={error} onRetry={retry} />
+      </View>
+    );
+  }
+
+  if (movies.length === 0) {
+    return (
+      <View style={styles.container}>
+        {searchBar}
+        <EmptyState
+          icon="search-outline"
+          title="Nenhum filme encontrado"
+          message={
+            query.trim()
+              ? `Não encontramos resultados para "${query.trim()}". Tente buscar por outro título.`
+              : 'Não há filmes populares para exibir no momento.'
+          }
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <FlatList
-        key={numColumns}
-        data={movies}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={numColumns}
-        renderItem={({ item }) => (
-          <MovieCard
-            movie={item}
-            cardWidth={cardWidth}
-            onPress={() => navigation.navigate('MovieDetail', { movieId: item.id })}
-          />
-        )}
+      <MovieGrid
+        movies={movies}
+        onPressMovie={(movie) => navigation.navigate('MovieDetail', { movieId: movie.id })}
+        ListHeaderComponent={searchBar}
       />
     </View>
   );

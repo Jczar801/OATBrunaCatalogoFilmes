@@ -1,7 +1,9 @@
 // src/services/movieService.js
 import axios from 'axios';
 
-const API_KEY = 'ec3f4e409aaaf2e3a44bdd20a80ad8e1'; // pegar em https://www.themoviedb.org/settings/api
+// Chave da API do TMDb, lida de uma variável de ambiente (ver .env.example).
+// Obtenha a sua em https://www.themoviedb.org/settings/api
+const API_KEY = process.env.EXPO_PUBLIC_TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 const api = axios.create({
@@ -27,5 +29,14 @@ export async function getMovieDetails(movieId) {
     return response.data;
   } catch (error) {
     throw new Error('Não foi possível carregar os detalhes do filme.');
+  }
+}
+
+export async function searchMovies(query) {
+  try {
+    const response = await api.get('/search/movie', { params: { query } });
+    return response.data.results;
+  } catch (error) {
+    throw new Error('Não foi possível buscar os filmes.');
   }
 }

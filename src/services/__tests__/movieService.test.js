@@ -16,7 +16,7 @@ jest.mock('axios', () => {
 });
 
 import axios from 'axios';
-import { getPopularMovies, getMovieDetails } from '../movieService';
+import { getPopularMovies, getMovieDetails, searchMovies } from '../movieService';
 
 describe('movieService', () => {
   const mockApi = { get: axios.__mockGet };
@@ -62,5 +62,21 @@ describe('movieService', () => {
     await expect(getMovieDetails(42)).rejects.toThrow(
       'Não foi possível carregar os detalhes do filme.'
     );
+  });
+
+  it('searchMovies busca filmes pelo título informado', async () => {
+    const fakeResults = [{ id: 3, title: 'Duna' }];
+    mockApi.get.mockResolvedValueOnce({ data: { results: fakeResults } });
+
+    const movies = await searchMovies('Duna');
+
+    expect(mockApi.get).toHaveBeenCalledWith('/search/movie', { params: { query: 'Duna' } });
+    expect(movies).toEqual(fakeResults);
+  });
+
+  it('searchMovies lança um erro amigável quando a API falha', async () => {
+    mockApi.get.mockRejectedValueOnce(new Error('network error'));
+
+    await expect(searchMovies('Duna')).rejects.toThrow('Não foi possível buscar os filmes.');
   });
 });
